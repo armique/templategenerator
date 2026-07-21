@@ -72,7 +72,7 @@ class SqlAlchemyTrackedProductRepository:
     def remove(self, product_id: TrackedProductId) -> bool:
         """Remove a tracked product and report whether it existed."""
         row = self._session.get(TrackedProductRow, str(product_id.value))
-        if row is None:
+        if row is None or row in self._session.deleted:
             return False
         self._session.delete(row)
         return True

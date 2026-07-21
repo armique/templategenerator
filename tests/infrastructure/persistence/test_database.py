@@ -2,6 +2,8 @@
 
 from sqlalchemy import Engine, inspect, text
 
+from marktwert.infrastructure.persistence import upgrade_database
+
 
 def test_migration_creates_expected_schema(sqlite_engine: Engine) -> None:
     inspector = inspect(sqlite_engine)
@@ -33,8 +35,6 @@ def test_sqlite_safety_pragmas_are_enabled(sqlite_engine: Engine) -> None:
 
 
 def test_migration_is_idempotent(sqlite_engine: Engine) -> None:
-    from marktwert.infrastructure.persistence import upgrade_database
-
     upgrade_database(sqlite_engine)
 
     with sqlite_engine.connect() as connection:

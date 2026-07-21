@@ -1,6 +1,6 @@
 """Completed-sale observation aggregate."""
 
-from dataclasses import dataclass, field, fields, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from decimal import Decimal
 from urllib.parse import urlparse
@@ -116,47 +116,38 @@ class SaleObservation:
             message = "cannot merge observations with different currencies"
             raise ValueError(message)
 
-        merged_values: dict[str, object] = {}
-        protected_fields = {
-            "source",
-            "external_item_id",
-            "title",
-            "sold_price",
-            "sold_at",
-            "acquired_at",
-            "raw_record_hash",
-            "seller",
-            "product",
-        }
-        for data_field in fields(self):
-            if data_field.name in protected_fields:
-                continue
-            current_value = getattr(self, data_field.name)
-            incoming_value = getattr(incoming, data_field.name)
-            merged_values[data_field.name] = (
-                incoming_value if current_value is None else current_value
-            )
-
         return replace(
             self,
+            shipping_price=_prefer(self.shipping_price, incoming.shipping_price),
+            condition=_prefer(self.condition, incoming.condition),
+            listing_format=_prefer(self.listing_format, incoming.listing_format),
+            best_offer=_prefer(self.best_offer, incoming.best_offer),
+            bid_count=_prefer(self.bid_count, incoming.bid_count),
+            listing_url=_prefer(self.listing_url, incoming.listing_url),
+            thumbnail_url=_prefer(self.thumbnail_url, incoming.thumbnail_url),
+            location=_prefer(self.location, incoming.location),
             seller=SellerSnapshot(
-                name=self.seller.name or incoming.seller.name,
-                feedback_percentage=(
-                    self.seller.feedback_percentage
-                    if self.seller.feedback_percentage is not None
-                    else incoming.seller.feedback_percentage
+                name=_prefer(self.seller.name, incoming.seller.name),
+                feedback_percentage=_prefer(
+                    self.seller.feedback_percentage,
+                    incoming.seller.feedback_percentage,
                 ),
-                feedback_count=(
-                    self.seller.feedback_count
-                    if self.seller.feedback_count is not None
-                    else incoming.seller.feedback_count
+                feedback_count=_prefer(
+                    self.seller.feedback_count,
+                    incoming.seller.feedback_count,
                 ),
             ),
             product=ProductSnapshot(
-                brand=self.product.brand or incoming.product.brand,
-                model=self.product.model or incoming.product.model,
-                part_number=self.product.part_number or incoming.product.part_number,
-                category=self.product.category or incoming.product.category,
+                brand=_prefer(self.product.brand, incoming.product.brand),
+                model=_prefer(self.product.model, incoming.product.model),
+                part_number=_prefer(
+                    self.product.part_number,
+                    incoming.product.part_number,
+                ),
+                category=_prefer(self.product.category, incoming.product.category),
             ),
-            **merged_values,
         )
+
+
+def _prefer[T](current: T | None, incoming: T | None) -> T | None:
+    return current if current is not None else incoming
