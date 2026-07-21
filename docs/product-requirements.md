@@ -31,7 +31,13 @@ stored data, and keeps user data local by default.
 ### Acquisition and provenance
 
 - Support multiple data sources through adapters: approved eBay APIs or feeds,
-  user CSV/Excel imports, and an explicitly authorized browser adapter.
+  user CSV/Excel imports, and a user-enabled targeted browser adapter.
+- Let users create, edit, disable, and remove tracked-product profiles before
+  collection. Each profile defines a sold-only window, price basis and limits,
+  condition, listing format, required terms, and exclusion terms.
+- Keep browser collection visible, single-session, and deliberately paced.
+  Stop on CAPTCHA, access denial, or provider throttling; never attempt access
+  control circumvention.
 - Capture listing identity, title, money values, sale date, seller facts,
   condition, format, bids, catalog attributes, URL, image reference, currency,
   location, source, acquisition time, and raw-record checksum.
@@ -48,6 +54,9 @@ stored data, and keeps user data local by default.
 - Apply configurable exclusion rules for defective items, accessories, empty
   packaging, and replacement parts.
 - Explain every automatic exclusion and allow non-destructive user overrides.
+- Treat ambiguous condition language as manual review rather than silently
+  accepting or rejecting it. `OVP` alone is not an empty-box signal; explicit
+  phrases such as `nur OVP`, `nur Karton`, and `leere Verpackung` are.
 
 ### Title normalization
 

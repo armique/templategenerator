@@ -5,21 +5,22 @@ secondary market for computer hardware. It is designed for professional
 resellers who need defensible price statistics, liquidity signals, and purchase
 recommendations based on completed-sale data.
 
-The repository currently contains the architecture and the first runnable
-application foundation. Data acquisition and business features will be added as
-separately tested modules.
+The repository contains the architecture, runnable application foundation, and
+the first completed-sales domain types. Data acquisition and remaining business
+features are added as separately tested modules.
 
 ## Current scope
 
 - Clean Architecture with MVVM at the Qt boundary
 - Python 3.12 project and quality-tool configuration
 - Typed application bootstrap and a dark, high-DPI-aware shell
+- Exact money, tracked-product criteria, and explainable title classification
 - Architecture, requirements, compliance, and delivery documentation
-- Unit tests for foundation metadata
+- Unit and Qt tests for the implemented modules
 
-No completed-listing collector is included yet. Automated eBay access requires
-an approved data source or eBay's prior express permission; see
-[`docs/architecture.md`](docs/architecture.md).
+No completed-listing collector is included yet. A user-enabled, human-paced,
+targeted browser adapter is specified with strict stop conditions and no
+access-control circumvention; see [`docs/architecture.md`](docs/architecture.md).
 
 ## Development setup
 

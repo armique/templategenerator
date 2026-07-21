@@ -7,9 +7,9 @@ committed. A later increment starts only after the preceding quality gate passes
    Package layout, bootstrap, dark high-DPI shell, configuration conventions,
    logging setup, test/lint/type tooling, and architecture documentation.
 
-2. **Domain primitives and sale observations**  
-   IDs, money, time ranges, source provenance, sale aggregate, exclusion
-   decisions, and domain tests.
+2. **Collection criteria and sales domain**
+   Exact money, tracked-product criteria, explainable title classification,
+   time ranges, source provenance, sale aggregate, and domain tests.
 
 3. **SQLite persistence**  
    SQLAlchemy mappings, Alembic, repositories, WAL/write coordination,
@@ -36,10 +36,11 @@ committed. A later increment starts only after the preceding quality gate passes
    Fee/cost policies, target-profit calculations, assumptions UI, persistence,
    reproducible reports, and boundary/property tests.
 
-9. **Authorized completed-sales adapter**  
-   Implement only after source rights and credentials are confirmed. Add
-   capabilities, rate limits, cursor sync, retries, raw provenance, contract
-   tests, and operational diagnostics.
+9. **Targeted completed-sales adapters**
+   Add provider capabilities, rate limits, cursor sync, retries, raw provenance,
+   contract tests, and operational diagnostics. Support an approved API/feed
+   source and the explicitly user-enabled visible-browser mode described in the
+   architecture, without access-control circumvention.
 
 10. **Advanced charts and market scores**  
     Distribution/group charts, trend and volatility, demand/liquidity formulas,

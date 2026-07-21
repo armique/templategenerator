@@ -106,8 +106,19 @@ validate query → load cursor → fetch page → validate payload
 - Rate limiting is per provider and persisted where required.
 - Quarantine captures malformed records without failing an entire page.
 
-Playwright runs in a worker process, never the UI process, and only through an
-authorized adapter. It is not a fallback when an API rejects access.
+The user-enabled Playwright adapter is deliberately narrow: one visible,
+persistent browser session; one page at a time; configurable delays between
+page actions and product searches; a bounded 30-day sold-results window; and an
+incremental stop once previously collected records are reached. It stops on a
+CAPTCHA, access denial, or explicit throttling. It does not spoof fingerprints,
+rotate proxies, solve challenges, or bypass other access controls. Playwright
+runs in a worker process, never the UI process. Users are warned that targeted
+automation can still be restricted by marketplace terms.
+
+Filtering occurs in two stages. Provider-supported query parameters reduce the
+result set before download. A versioned local policy then classifies each title
+as accepted, excluded, or requiring review. Every non-accepted decision stores
+matched evidence. Broad tokens such as `OVP` are not exclusions by themselves.
 
 ## 6. Persistence
 
