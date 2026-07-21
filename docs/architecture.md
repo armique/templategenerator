@@ -129,13 +129,15 @@ migrations. SQLite is configured with:
 - a busy timeout and short transactions;
 - one serialized writer with read-only worker sessions;
 - indexes for source identity, sold date, product identity, and common filters;
-- FTS5 projections for normalized and original titles;
 - page-oriented imports to bound memory and transaction size.
 
-The initial schema will separate `source_records`, `sale_observations`,
-`products`, `normalization_runs`, `saved_searches`, `watch_rules`,
-`recommendations`, and job state. Raw payload retention is configurable and
-compressed; content hashes remain after payload expiry.
+The first migrated schema separates `tracked_products`, normalized
+`sale_observations`, distinct `source_revisions`, and many-to-many
+`tracked_product_sales`. Source plus external item ID is unique. Repeated source
+hashes and product links are idempotent, while a later revision can fill missing
+normalized fields without overwriting known facts. Future migrations add FTS5,
+normalization runs, watch rules, recommendations, durable job state, and
+configurable compressed raw-payload retention when their modules are built.
 
 Backups use SQLite's online backup API, followed by `PRAGMA integrity_check`.
 Restore is staged and verified before atomically replacing the active database.

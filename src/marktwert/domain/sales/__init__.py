@@ -16,6 +16,11 @@ from marktwert.domain.sales.collection_profile import (
     TrackedProduct,
     TrackedProductId,
 )
+from marktwert.domain.sales.observation import (
+    ProductSnapshot,
+    SaleObservation,
+    SellerSnapshot,
+)
 
 __all__ = [
     "ClassificationDecision",
@@ -27,7 +32,10 @@ __all__ = [
     "ListingClassificationPolicy",
     "ListingFormat",
     "PriceBasis",
+    "ProductSnapshot",
     "ReviewReason",
+    "SaleObservation",
+    "SellerSnapshot",
     "TrackedProduct",
     "TrackedProductId",
 ]

@@ -15,6 +15,7 @@ features are added as separately tested modules.
 - Python 3.12 project and quality-tool configuration
 - Typed application bootstrap and a dark, high-DPI-aware shell
 - Exact money, tracked-product criteria, and explainable title classification
+- Migrated SQLite storage for tracked products and deduplicated sale observations
 - Architecture, requirements, compliance, and delivery documentation
 - Unit and Qt tests for the implemented modules
 
