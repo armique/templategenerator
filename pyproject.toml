@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marktwert"
+version = "0.1.0"
+description = "German computer-hardware resale market analytics desktop"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+authors = [{ name = "MarktWert Contributors" }]
+dependencies = [
+    "PySide6>=6.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.16",
+    "pytest>=8.4",
+    "pytest-cov>=6.2",
+    "pytest-qt>=4.4",
+    "ruff>=0.12",
+]
+
+[project.gui-scripts]
+marktwert = "marktwert.__main__:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers --cov=marktwert --cov-report=term-missing"
+minversion = "8.0"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "A",
+    "ANN",
+    "B",
+    "C4",
+    "D",
+    "E",
+    "F",
+    "I",
+    "N",
+    "PERF",
+    "PIE",
+    "PL",
+    "PTH",
+    "RUF",
+    "SIM",
+    "UP",
+]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "PLR2004"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["marktwert"]
+
+[[tool.mypy.overrides]]
+module = ["PySide6.*"]
+ignore_missing_imports = true
