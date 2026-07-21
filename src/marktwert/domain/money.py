@@ -1,8 +1,9 @@
 """Exact monetary value objects."""
 
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
+ISO_4217_CODE_LENGTH = 3
 MINOR_UNITS_PER_MAJOR_UNIT = 100
 
 
@@ -16,7 +17,10 @@ class Money:
     def __post_init__(self) -> None:
         """Validate and normalize the monetary value."""
         normalized_currency = self.currency.strip().upper()
-        if len(normalized_currency) != 3 or not normalized_currency.isalpha():
+        if (
+            len(normalized_currency) != ISO_4217_CODE_LENGTH
+            or not normalized_currency.isalpha()
+        ):
             message = "currency must be a three-letter ISO-4217 code"
             raise ValueError(message)
         object.__setattr__(self, "currency", normalized_currency)

@@ -5,8 +5,9 @@ from enum import StrEnum
 from typing import Self
 from uuid import UUID, uuid4
 
-from marktwert.domain.money import Money
+from marktwert.domain.money import ISO_4217_CODE_LENGTH, Money
 
+ISO_3166_ALPHA_2_CODE_LENGTH = 2
 DEFAULT_LOOKBACK_DAYS = 30
 MAXIMUM_LOOKBACK_DAYS = 90
 MINIMUM_QUERY_LENGTH = 2
@@ -81,12 +82,18 @@ class CompletedSalesCriteria:
             raise ValueError(message)
 
         normalized_country = self.marketplace_country.strip().upper()
-        if len(normalized_country) != 2 or not normalized_country.isalpha():
+        if (
+            len(normalized_country) != ISO_3166_ALPHA_2_CODE_LENGTH
+            or not normalized_country.isalpha()
+        ):
             message = "marketplace_country must be a two-letter country code"
             raise ValueError(message)
 
         normalized_currency = self.currency.strip().upper()
-        if len(normalized_currency) != 3 or not normalized_currency.isalpha():
+        if (
+            len(normalized_currency) != ISO_4217_CODE_LENGTH
+            or not normalized_currency.isalpha()
+        ):
             message = "currency must be a three-letter ISO-4217 code"
             raise ValueError(message)
 

@@ -53,8 +53,9 @@ def test_criteria_rejects_invalid_configuration(
     overrides: dict[str, object],
     message: str,
 ) -> None:
+    arguments: dict[str, object] = {"query": "RTX 3070", **overrides}
     with pytest.raises(ValueError, match=message):
-        CompletedSalesCriteria(query="RTX 3070", **overrides)  # type: ignore[arg-type]
+        CompletedSalesCriteria(**arguments)  # type: ignore[arg-type]
 
 
 def test_criteria_rejects_inconsistent_price_range() -> None:
