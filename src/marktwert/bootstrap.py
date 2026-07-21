@@ -14,10 +14,14 @@ from marktwert.presentation.theme import DARK_STYLESHEET
 def create_application(arguments: Sequence[str] | None = None) -> QApplication:
     """Create and configure the sole Qt application instance."""
     existing = QApplication.instance()
-    if existing is not None:
-        return existing
+    if existing is None:
+        app = QApplication(list(arguments) if arguments is not None else sys.argv)
+    elif isinstance(existing, QApplication):
+        app = existing
+    else:
+        message = "A non-GUI QCoreApplication already exists"
+        raise RuntimeError(message)
 
-    app = QApplication(list(arguments) if arguments is not None else sys.argv)
     QCoreApplication.setApplicationName(APPLICATION.name)
     QCoreApplication.setApplicationVersion(APPLICATION.version)
     QCoreApplication.setOrganizationName(APPLICATION.organization)
