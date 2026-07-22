@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication
-from PySide6.QtWidgets import QApplication, QLineEdit
+from PySide6.QtWidgets import QApplication, QLineEdit, QPushButton
 from pytestqt.qtbot import QtBot
 
 from marktwert import APPLICATION
@@ -39,5 +39,9 @@ def test_runtime_composes_searchable_local_database(
     qtbot.addWidget(runtime.window)
 
     assert runtime.window.findChild(QLineEdit, "searchInput").isEnabled()
+    assert runtime.window.findChild(
+        QPushButton,
+        "manageProductsButton",
+    ).isEnabled()
     assert (tmp_path / "runtime.db").exists()
     runtime.shutdown()

@@ -20,16 +20,23 @@ from PySide6.QtWidgets import (
 
 from marktwert import APPLICATION
 from marktwert.application.search import RecentSearch
+from marktwert.presentation.product_view_model import ProductWorkspaceViewModel
+from marktwert.presentation.product_workspace import ProductWorkspaceDialog
 from marktwert.presentation.search_view_model import SaleSearchViewModel
 
 
 class MainWindow(QMainWindow):
     """Display the responsive local-sales workspace."""
 
-    def __init__(self, view_model: SaleSearchViewModel | None = None) -> None:
+    def __init__(
+        self,
+        view_model: SaleSearchViewModel | None = None,
+        product_view_model: ProductWorkspaceViewModel | None = None,
+    ) -> None:
         """Initialize the main window and optional functional workspace."""
         super().__init__()
         self._view_model = view_model
+        self._product_view_model = product_view_model
         self.setWindowTitle(APPLICATION.name)
         self.setMinimumSize(960, 640)
         self.resize(1280, 800)
@@ -91,13 +98,20 @@ class MainWindow(QMainWindow):
         eyebrow.setObjectName("eyebrow")
         title = QLabel("Completed-sales search")
         title.setObjectName("pageTitle")
+        title_row = QHBoxLayout()
+        title_row.addWidget(title)
+        title_row.addStretch()
+        self._manage_products_button = QPushButton("Products & imports")
+        self._manage_products_button.setObjectName("manageProductsButton")
+        self._manage_products_button.setEnabled(self._product_view_model is not None)
+        title_row.addWidget(self._manage_products_button)
         self._result_table = self._build_result_table()
         self._empty_state = self._build_empty_state()
         self._load_more_button = QPushButton("Load more")
         self._load_more_button.setVisible(False)
 
         layout.addWidget(eyebrow)
-        layout.addWidget(title)
+        layout.addLayout(title_row)
         layout.addLayout(self._build_search())
         layout.addWidget(self._empty_state, stretch=1)
         layout.addWidget(self._result_table, stretch=1)
@@ -183,6 +197,7 @@ class MainWindow(QMainWindow):
         return frame
 
     def _connect_view_model(self) -> None:
+        self._manage_products_button.clicked.connect(self._open_product_workspace)
         if self._view_model is None:
             return
         self._search_button.clicked.connect(self._start_search)
@@ -193,6 +208,12 @@ class MainWindow(QMainWindow):
         self._view_model.status_changed.connect(self._on_status_changed)
         self._view_model.has_more_changed.connect(self._load_more_button.setVisible)
         self._view_model.recent_changed.connect(self._on_recent_changed)
+
+    @Slot()
+    def _open_product_workspace(self) -> None:
+        if self._product_view_model is None:
+            return
+        ProductWorkspaceDialog(self._product_view_model, self).exec()
 
     @Slot()
     def _start_search(self) -> None:

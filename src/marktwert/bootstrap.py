@@ -10,7 +10,10 @@ from PySide6.QtWidgets import QApplication
 from sqlalchemy import Engine
 
 from marktwert import APPLICATION
+from marktwert.application.imports import ImportCompletedSalesService
+from marktwert.application.products import TrackedProductService
 from marktwert.application.search import SearchSalesService
+from marktwert.infrastructure.imports import TabularSalesFileReaderFactory
 from marktwert.infrastructure.persistence import (
     SqlAlchemyUnitOfWork,
     create_sqlite_engine,
@@ -18,6 +21,7 @@ from marktwert.infrastructure.persistence import (
 )
 from marktwert.infrastructure.platform_paths import default_data_directory
 from marktwert.presentation.main_window import MainWindow
+from marktwert.presentation.product_view_model import ProductWorkspaceViewModel
 from marktwert.presentation.search_view_model import SaleSearchViewModel
 from marktwert.presentation.theme import DARK_STYLESHEET
 
@@ -28,11 +32,13 @@ class ApplicationRuntime:
 
     engine: Engine
     view_model: SaleSearchViewModel
+    product_view_model: ProductWorkspaceViewModel
     window: MainWindow
 
     def shutdown(self) -> None:
         """Stop background work before releasing database connections."""
         self.view_model.shutdown()
+        self.product_view_model.shutdown()
         self.engine.dispose()
 
 
@@ -66,10 +72,18 @@ def create_runtime(database_path: Path | None = None) -> ApplicationRuntime:
     upgrade_database(engine)
     unit_of_work_factory = SqlAlchemyUnitOfWork.factory_for(engine)
     view_model = SaleSearchViewModel(SearchSalesService(unit_of_work_factory))
+    product_view_model = ProductWorkspaceViewModel(
+        TrackedProductService(unit_of_work_factory),
+        ImportCompletedSalesService(
+            unit_of_work_factory,
+            TabularSalesFileReaderFactory(),
+        ),
+    )
     return ApplicationRuntime(
         engine=engine,
         view_model=view_model,
-        window=MainWindow(view_model),
+        product_view_model=product_view_model,
+        window=MainWindow(view_model, product_view_model),
     )
 
 

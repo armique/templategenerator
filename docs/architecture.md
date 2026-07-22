@@ -199,6 +199,12 @@ Qt views contain layout and visual behavior only. View models expose typed state
 and commands and depend on application use cases. Read-only table models use
 pagination/virtualization rather than materializing the full database.
 
+The tracked-product workspace edits complete collection criteria before any
+source operation. Its bounded import preview and transactional import share the
+same mapper and classifier, preventing preview/execution drift. Product CRUD,
+preview, and import run through a serialized worker view model; dialogs only
+collect input and render immutable results.
+
 The concurrency model is deliberately bounded:
 
 - Qt main thread: widgets, signals, and lightweight state transitions;
