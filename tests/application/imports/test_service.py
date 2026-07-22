@@ -133,6 +133,13 @@ def test_service_imports_classifies_quarantines_and_deduplicates(
     assert links[1].classification_evidence == [
         {"reason": "empty_box", "matched_term": "nur ovp"}
     ]
+    factory = SqlAlchemyUnitOfWork.factory_for(engine)
+    with factory() as unit_of_work:
+        normalized = unit_of_work.sale_observations.get("manual_csv", "1")
+    assert normalized is not None
+    assert normalized.product.brand is None
+    assert normalized.product.model == "RTX 3070"
+    assert normalized.product.normalized_title == "RTX 3070 Gaming OC"
     engine.dispose()
 
 

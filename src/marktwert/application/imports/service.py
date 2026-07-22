@@ -1,7 +1,7 @@
 """Transactional completed-sales file import orchestration."""
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 
 from marktwert.application.imports.mapping import RowValidationError, SalesRowMapper
@@ -24,6 +24,7 @@ from marktwert.application.imports.ports import (
     SalesFileReaderFactory,
 )
 from marktwert.application.ports import UnitOfWorkFactory
+from marktwert.domain.normalization import HardwareTitleNormalizer
 from marktwert.domain.sales import (
     ClassificationDecision,
     ClassificationResult,
@@ -90,11 +91,13 @@ class ImportCompletedSalesService:
         reader_factory: SalesFileReaderFactory,
         *,
         clock: Callable[[], datetime] | None = None,
+        normalizer: HardwareTitleNormalizer | None = None,
     ) -> None:
         """Initialize the use case with infrastructure ports."""
         self._unit_of_work_factory = unit_of_work_factory
         self._reader_factory = reader_factory
         self._clock = clock or _utc_now
+        self._normalizer = normalizer or HardwareTitleNormalizer()
         self._classification_policy = ListingClassificationPolicy()
         self._custom_only_policy = ListingClassificationPolicy(
             faulty_terms=(),
@@ -157,6 +160,7 @@ class ImportCompletedSalesService:
                         source=command.source,
                         acquired_at=acquired_at,
                     )
+                    observation = self._normalize_observation(observation)
                 except RowValidationError as error:
                     issues.append(
                         ImportIssue(
@@ -248,6 +252,7 @@ class ImportCompletedSalesService:
                         source=command.source,
                         acquired_at=acquired_at,
                     )
+                    observation = self._normalize_observation(observation)
                 except RowValidationError as error:
                     state.invalid_rows += 1
                     state.add_issue(
@@ -311,6 +316,18 @@ class ImportCompletedSalesService:
             title,
             required_terms=criteria.required_title_terms,
             additional_exclusion_terms=criteria.additional_exclusion_terms,
+        )
+
+    def _normalize_observation(
+        self,
+        observation: SaleObservation,
+    ) -> SaleObservation:
+        return replace(
+            observation,
+            product=self._normalizer.normalize(
+                observation.title,
+                source=observation.product,
+            ),
         )
 
     def _commit_batch(

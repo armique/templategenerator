@@ -33,10 +33,38 @@ class SellerSnapshot:
 class ProductSnapshot:
     """Hardware identity facts extracted from the source listing."""
 
+    normalized_title: str | None = None
     brand: str | None = None
     model: str | None = None
     part_number: str | None = None
     category: str | None = None
+    chipset: str | None = None
+    ram_capacity_gb: int | None = None
+    clock_speed_mhz: int | None = None
+    socket: str | None = None
+    revision: str | None = None
+    memory_size_gb: int | None = None
+    storage_size_gb: int | None = None
+    normalization_confidence: int | None = None
+    normalization_version: str | None = None
+    normalization_evidence: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        """Validate extracted numeric facts and confidence."""
+        numeric_values = (
+            self.ram_capacity_gb,
+            self.clock_speed_mhz,
+            self.memory_size_gb,
+            self.storage_size_gb,
+        )
+        if any(value is not None and value <= 0 for value in numeric_values):
+            message = "hardware numeric attributes must be positive"
+            raise ValueError(message)
+        if self.normalization_confidence is not None and not (
+            0 <= self.normalization_confidence <= 10_000
+        ):
+            message = "normalization confidence must be between 0 and 10000"
+            raise ValueError(message)
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,6 +166,10 @@ class SaleObservation:
                 ),
             ),
             product=ProductSnapshot(
+                normalized_title=_prefer(
+                    self.product.normalized_title,
+                    incoming.product.normalized_title,
+                ),
                 brand=_prefer(self.product.brand, incoming.product.brand),
                 model=_prefer(self.product.model, incoming.product.model),
                 part_number=_prefer(
@@ -145,6 +177,37 @@ class SaleObservation:
                     incoming.product.part_number,
                 ),
                 category=_prefer(self.product.category, incoming.product.category),
+                chipset=_prefer(self.product.chipset, incoming.product.chipset),
+                ram_capacity_gb=_prefer(
+                    self.product.ram_capacity_gb,
+                    incoming.product.ram_capacity_gb,
+                ),
+                clock_speed_mhz=_prefer(
+                    self.product.clock_speed_mhz,
+                    incoming.product.clock_speed_mhz,
+                ),
+                socket=_prefer(self.product.socket, incoming.product.socket),
+                revision=_prefer(self.product.revision, incoming.product.revision),
+                memory_size_gb=_prefer(
+                    self.product.memory_size_gb,
+                    incoming.product.memory_size_gb,
+                ),
+                storage_size_gb=_prefer(
+                    self.product.storage_size_gb,
+                    incoming.product.storage_size_gb,
+                ),
+                normalization_confidence=_prefer(
+                    self.product.normalization_confidence,
+                    incoming.product.normalization_confidence,
+                ),
+                normalization_version=_prefer(
+                    self.product.normalization_version,
+                    incoming.product.normalization_version,
+                ),
+                normalization_evidence=(
+                    self.product.normalization_evidence
+                    or incoming.product.normalization_evidence
+                ),
             ),
         )
 

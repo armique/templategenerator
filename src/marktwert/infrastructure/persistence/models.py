@@ -99,10 +99,21 @@ class SaleObservationRow(Base):
     seller_name: Mapped[str | None] = mapped_column(String(200))
     seller_feedback_percentage: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     seller_feedback_count: Mapped[int | None] = mapped_column(Integer)
+    normalized_title: Mapped[str | None] = mapped_column(Text)
     brand: Mapped[str | None] = mapped_column(String(120))
     model: Mapped[str | None] = mapped_column(String(200))
     part_number: Mapped[str | None] = mapped_column(String(120))
     category: Mapped[str | None] = mapped_column(String(200))
+    chipset: Mapped[str | None] = mapped_column(String(32))
+    ram_capacity_gb: Mapped[int | None] = mapped_column(Integer)
+    clock_speed_mhz: Mapped[int | None] = mapped_column(Integer)
+    socket: Mapped[str | None] = mapped_column(String(32))
+    revision: Mapped[str | None] = mapped_column(String(32))
+    memory_size_gb: Mapped[int | None] = mapped_column(Integer)
+    storage_size_gb: Mapped[int | None] = mapped_column(Integer)
+    normalization_confidence: Mapped[int | None] = mapped_column(Integer)
+    normalization_version: Mapped[str | None] = mapped_column(String(64))
+    normalization_evidence: Mapped[list[str]] = mapped_column(JSON, nullable=False)
 
 
 class SourceRevisionRow(Base):

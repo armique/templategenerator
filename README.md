@@ -19,6 +19,7 @@ features are added as separately tested modules.
 - Previewable, transactional CSV/XLSX completed-sales import pipeline
 - Responsive FTS5 local search with keyset pagination and recent queries
 - Desktop UI for tracked-product criteria, file preview, and imports
+- Versioned hardware-title normalization with persisted evidence and confidence
 - Architecture, requirements, compliance, and delivery documentation
 - Unit and Qt tests for the implemented modules
 
@@ -56,4 +57,5 @@ mypy src
 - [Architecture](docs/architecture.md)
 - [Delivery roadmap](docs/delivery-roadmap.md)
 - [Completed-sales import format](docs/import-format.md)
+- [Hardware title normalization](docs/title-normalization.md)
 - [Architecture decisions](docs/adr/0001-clean-architecture-and-mvvm.md)

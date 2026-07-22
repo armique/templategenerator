@@ -135,7 +135,17 @@ def test_observation_upsert_is_idempotent_and_enriches_missing_fields(
             feedback_percentage=Decimal("99.80"),
             feedback_count=1200,
         ),
-        product=ProductSnapshot(brand="Gigabyte", model="RTX 3070"),
+        product=ProductSnapshot(
+            normalized_title="Gigabyte RTX 3070 Gaming OC",
+            brand="Gigabyte",
+            model="RTX 3070",
+            category="gpu",
+            revision="Rev 2",
+            memory_size_gb=8,
+            normalization_confidence=9000,
+            normalization_version="hardware-rules-1",
+            normalization_evidence=("model:RTX 3070:pattern",),
+        ),
         acquired_at=datetime(2026, 7, 16, 8, tzinfo=UTC),
         raw_record_hash="sha256:enriched",
     )
@@ -164,6 +174,9 @@ def test_observation_upsert_is_idempotent_and_enriches_missing_fields(
     assert stored.shipping_price == Money.from_major_units("7.49")
     assert stored.acquired_at == FIRST_ACQUISITION
     assert stored.seller.name == "hardware-shop"
+    assert stored.product.normalized_title == "Gigabyte RTX 3070 Gaming OC"
+    assert stored.product.memory_size_gb == 8
+    assert stored.product.normalization_evidence == ("model:RTX 3070:pattern",)
     assert listed == (stored,)
 
     with Session(sqlite_engine) as session:

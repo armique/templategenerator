@@ -327,10 +327,23 @@ def _observation_values(observation: SaleObservation) -> dict[str, object]:
         "seller_name": observation.seller.name,
         "seller_feedback_percentage": observation.seller.feedback_percentage,
         "seller_feedback_count": observation.seller.feedback_count,
+        "normalized_title": observation.product.normalized_title,
         "brand": observation.product.brand,
         "model": observation.product.model,
         "part_number": observation.product.part_number,
         "category": observation.product.category,
+        "chipset": observation.product.chipset,
+        "ram_capacity_gb": observation.product.ram_capacity_gb,
+        "clock_speed_mhz": observation.product.clock_speed_mhz,
+        "socket": observation.product.socket,
+        "revision": observation.product.revision,
+        "memory_size_gb": observation.product.memory_size_gb,
+        "storage_size_gb": observation.product.storage_size_gb,
+        "normalization_confidence": observation.product.normalization_confidence,
+        "normalization_version": observation.product.normalization_version,
+        "normalization_evidence": list(
+            observation.product.normalization_evidence
+        ),
     }
 
 
@@ -375,10 +388,21 @@ def _row_to_observation(row: SaleObservationRow) -> SaleObservation:
             feedback_count=row.seller_feedback_count,
         ),
         product=ProductSnapshot(
+            normalized_title=row.normalized_title,
             brand=row.brand,
             model=row.model,
             part_number=row.part_number,
             category=row.category,
+            chipset=row.chipset,
+            ram_capacity_gb=row.ram_capacity_gb,
+            clock_speed_mhz=row.clock_speed_mhz,
+            socket=row.socket,
+            revision=row.revision,
+            memory_size_gb=row.memory_size_gb,
+            storage_size_gb=row.storage_size_gb,
+            normalization_confidence=row.normalization_confidence,
+            normalization_version=row.normalization_version,
+            normalization_evidence=tuple(row.normalization_evidence),
         ),
     )
 
