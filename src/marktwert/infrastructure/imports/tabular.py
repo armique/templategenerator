@@ -48,7 +48,12 @@ class CsvSalesFileReader:
     def read_rows(self, path: Path) -> Iterator[RawSalesRow]:
         """Yield normalized CSV rows."""
         try:
-            with path.open("r", encoding="utf-8-sig", errors="strict", newline="") as file:
+            with path.open(
+                "r",
+                encoding="utf-8-sig",
+                errors="strict",
+                newline="",
+            ) as file:
                 sample = file.read(CSV_SNIFF_BYTES)
                 file.seek(0)
                 dialect = _detect_csv_dialect(sample)

@@ -77,6 +77,7 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
 REQUIRED_FIELDS = frozenset(
     {"external_item_id", "title", "sold_price", "sold_at"}
 )
+SINGLE_SEPARATOR_PART_COUNT = 2
 DATE_FORMATS = (
     "%d.%m.%Y %H:%M:%S",
     "%d.%m.%Y %H:%M",
@@ -263,7 +264,7 @@ def _normalize_decimal_separators(value: str) -> str:
     if separator is None:
         return value
     parts = value.split(separator)
-    if len(parts) > 2:
+    if len(parts) > SINGLE_SEPARATOR_PART_COUNT:
         decimal_digits = parts[-1]
         if len(decimal_digits) in {1, 2}:
             return "".join(parts[:-1]) + "." + decimal_digits

@@ -32,6 +32,8 @@ from marktwert.domain.sales import (
     TrackedProduct,
 )
 
+MAXIMUM_PREVIEW_ROWS = 100
+
 
 @dataclass(frozen=True, slots=True)
 class _PreparedRow:
@@ -109,8 +111,8 @@ class ImportCompletedSalesService:
         limit: int = 25,
     ) -> ImportPreview:
         """Validate and classify a bounded preview without writing data."""
-        if not 1 <= limit <= 100:
-            message = "preview limit must be between 1 and 100"
+        if not 1 <= limit <= MAXIMUM_PREVIEW_ROWS:
+            message = f"preview limit must be between 1 and {MAXIMUM_PREVIEW_ROWS}"
             raise ValueError(message)
         product = self._load_product(command)
         mapper = SalesRowMapper(command.default_timezone)
