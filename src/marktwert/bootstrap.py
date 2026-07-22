@@ -21,8 +21,8 @@ from marktwert.infrastructure.persistence import (
     upgrade_database,
 )
 from marktwert.infrastructure.platform_paths import default_data_directory
-from marktwert.presentation.main_window import MainWindow
 from marktwert.presentation.analytics_view_model import AnalyticsViewModel
+from marktwert.presentation.main_window import MainWindow
 from marktwert.presentation.product_view_model import ProductWorkspaceViewModel
 from marktwert.presentation.search_view_model import SaleSearchViewModel
 from marktwert.presentation.theme import DARK_STYLESHEET

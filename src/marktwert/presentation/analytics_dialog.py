@@ -1,5 +1,8 @@
 """Market statistics and price-history dialog."""
 
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from matplotlib.dates import date2num
+from matplotlib.figure import Figure
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -13,10 +16,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
 
 from marktwert.application.analytics import AnalysisWindow, MarketAnalysis
+from marktwert.domain.money import Money
 from marktwert.domain.sales import TrackedProduct
 from marktwert.presentation.analytics_view_model import AnalyticsViewModel
 
@@ -80,12 +82,13 @@ class MarketAnalysisDialog(QDialog):
             ("volatility", "Volatility"),
         ):
             value = QLabel("—")
+            value.setObjectName(f"metric{key.title()}")
             value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             self._metric_labels[key] = value
             metrics.addRow(label, value)
 
         self._figure = Figure(facecolor="#151a21")
-        self._canvas = FigureCanvasQTAgg(self._figure)
+        self._canvas = FigureCanvasQTAgg(self._figure)  # type: ignore[no-untyped-call]
         self._status = QLabel("Select a tracked product.")
         self._status.setObjectName("muted")
 
@@ -140,14 +143,10 @@ class MarketAnalysisDialog(QDialog):
         self._metric_labels["average"].setText(_money(statistics.average))
         self._metric_labels["median"].setText(_money(statistics.median))
         self._metric_labels["range"].setText(
-            f"{_money(statistics.minimum)} – {_money(statistics.maximum)}"
+            f"{_money(statistics.minimum)} - {_money(statistics.maximum)}"
         )
-        self._metric_labels["stddev"].setText(
-            _money(statistics.standard_deviation)
-        )
-        self._metric_labels["shipping"].setText(
-            _money(statistics.average_shipping)
-        )
+        self._metric_labels["stddev"].setText(_money(statistics.standard_deviation))
+        self._metric_labels["shipping"].setText(_money(statistics.average_shipping))
         self._metric_labels["frequency"].setText(
             f"{statistics.average_daily_sales} / "
             f"{statistics.average_weekly_sales} / "
@@ -158,12 +157,10 @@ class MarketAnalysisDialog(QDialog):
             if statistics.trend_percent is not None
             else "Insufficient sample"
         )
-        self._metric_labels["volatility"].setText(
-            f"{statistics.volatility_percent} %"
-        )
+        self._metric_labels["volatility"].setText(f"{statistics.volatility_percent} %")
         self._draw_history(raw_analysis)
         self._status.setText(
-            f"{statistics.first_sale_date:%d.%m.%Y} – "
+            f"{statistics.first_sale_date:%d.%m.%Y} - "
             f"{statistics.last_sale_date:%d.%m.%Y}"
         )
 
@@ -171,28 +168,26 @@ class MarketAnalysisDialog(QDialog):
         self._figure.clear()
         axis = self._figure.add_subplot(111)
         axis.set_facecolor("#151a21")
-        dates = [point.sold_at for point in analysis.history]
+        dates = date2num([point.sold_at for point in analysis.history])
         prices = [float(point.price.major_units) for point in analysis.history]
-        moving = [
-            float(point.moving_average.major_units) for point in analysis.history
-        ]
+        moving = [float(point.moving_average.major_units) for point in analysis.history]
         axis.scatter(dates, prices, color="#7fa2ff", s=24, label="Sold price")
         axis.plot(dates, moving, color="#49c6a2", linewidth=2, label="7-day average")
         axis.tick_params(colors="#9ba6b5")
         axis.grid(color="#252c36", alpha=0.7)
         axis.legend(facecolor="#191f27", labelcolor="#e6eaf0")
         self._figure.tight_layout()
-        self._canvas.draw_idle()
+        self._canvas.draw_idle()  # type: ignore[no-untyped-call]
 
     def _clear_chart(self) -> None:
         self._figure.clear()
-        self._canvas.draw_idle()
+        self._canvas.draw_idle()  # type: ignore[no-untyped-call]
 
     @Slot(str)
     def _on_error(self, message: str) -> None:
         QMessageBox.warning(self, "Market analysis", message)
 
 
-def _money(value: object) -> str:
+def _money(value: Money) -> str:
     major = value.major_units
     return f"{major:.2f} {value.currency}"

@@ -1,8 +1,8 @@
 """Numerical market statistics and price-history analysis."""
 
-from datetime import UTC, datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
 from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 
 import numpy as np
 import pandas as pd
@@ -20,6 +20,7 @@ from marktwert.domain.money import Money
 MOVING_AVERAGE_WINDOW = "7D"
 MONTH_DAYS = Decimal("30.4375")
 RATE_QUANTUM = Decimal("0.0001")
+MINIMUM_TREND_SAMPLE_SIZE = 3
 
 
 class MarketAnalyticsService:
@@ -62,11 +63,7 @@ class MarketAnalyticsService:
         prices = np.asarray(
             [
                 point.sold_price_minor
-                + (
-                    point.shipping_price_minor or 0
-                    if request.include_shipping
-                    else 0
-                )
+                + (point.shipping_price_minor or 0 if request.include_shipping else 0)
                 for point in points
             ],
             dtype=np.float64,
@@ -79,9 +76,7 @@ class MarketAnalyticsService:
         day_span = max(1, (sold_dates[-1].date() - sold_dates[0].date()).days + 1)
         daily_rate = Decimal(len(points)) / Decimal(day_span)
         mean = float(np.mean(prices))
-        standard_deviation = (
-            float(np.std(prices, ddof=1)) if len(prices) > 1 else 0.0
-        )
+        standard_deviation = float(np.std(prices, ddof=1)) if len(prices) > 1 else 0.0
         trend = _trend_percent(prices, sold_dates, mean)
         volatility = (
             Decimal(str(standard_deviation / mean * 100)) if mean else Decimal(0)
@@ -135,13 +130,14 @@ def _trend_percent(
     sold_dates: list[datetime],
     mean: float,
 ) -> Decimal | None:
-    if len(prices) < 3 or sold_dates[-1] == sold_dates[0] or mean == 0:
+    if (
+        len(prices) < MINIMUM_TREND_SAMPLE_SIZE
+        or sold_dates[-1] == sold_dates[0]
+        or mean == 0
+    ):
         return None
     x_values = np.asarray(
-        [
-            (sold_at - sold_dates[0]).total_seconds() / 86_400
-            for sold_at in sold_dates
-        ],
+        [(sold_at - sold_dates[0]).total_seconds() / 86_400 for sold_at in sold_dates],
         dtype=np.float64,
     )
     slope = float(np.polyfit(x_values, prices, 1)[0])

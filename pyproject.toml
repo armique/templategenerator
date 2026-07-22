@@ -23,6 +23,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "mypy>=1.16",
+    "pandas-stubs>=3.0.3.260530",
     "pytest>=8.4",
     "pytest-cov>=6.2",
     "pytest-qt>=4.4",
