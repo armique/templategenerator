@@ -108,8 +108,12 @@ class MarketAnalysisDialog(QDialog):
     @Slot()
     def _request_analysis(self) -> None:
         product = self._products.currentData()
-        window = self._window.currentData()
-        if isinstance(product, TrackedProduct) and isinstance(window, AnalysisWindow):
+        raw_window = self._window.currentData()
+        try:
+            window = AnalysisWindow(str(raw_window))
+        except ValueError:
+            return
+        if isinstance(product, TrackedProduct):
             self._view_model.analyze(
                 product.id,
                 window,
@@ -168,7 +172,9 @@ class MarketAnalysisDialog(QDialog):
         self._figure.clear()
         axis = self._figure.add_subplot(111)
         axis.set_facecolor("#151a21")
-        dates = date2num([point.sold_at for point in analysis.history])
+        dates = date2num(  # type: ignore[no-untyped-call]
+            [point.sold_at for point in analysis.history]
+        )
         prices = [float(point.price.major_units) for point in analysis.history]
         moving = [float(point.moving_average.major_units) for point in analysis.history]
         axis.scatter(dates, prices, color="#7fa2ff", s=24, label="Sold price")

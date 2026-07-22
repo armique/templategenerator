@@ -113,15 +113,15 @@ def _history(
     frame = pd.DataFrame(
         {"price": prices},
         index=pd.DatetimeIndex([point.sold_at for point in points]),
-    ).sort_index()
+    )
     moving = frame["price"].rolling(MOVING_AVERAGE_WINDOW, min_periods=1).mean()
     return tuple(
         PriceHistoryPoint(
-            sold_at=index.to_pydatetime(),
+            sold_at=points[position].sold_at,
             price=_money(float(price), currency),
             moving_average=_money(float(moving.iloc[position]), currency),
         )
-        for position, (index, price) in enumerate(frame["price"].items())
+        for position, price in enumerate(frame["price"].to_numpy())
     )
 
 
