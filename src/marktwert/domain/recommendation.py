@@ -1,7 +1,7 @@
 """Exact purchase-price recommendation policy."""
 
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 from marktwert.domain.money import Money
 
@@ -111,6 +111,7 @@ class PurchaseRecommendationPolicy:
 
 def _rate_amount(minor_units: int, basis_points: int) -> int:
     return int(
-        (Decimal(minor_units) * Decimal(basis_points) / FULL_RATE_BASIS_POINTS)
-        .quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        (
+            Decimal(minor_units) * Decimal(basis_points) / FULL_RATE_BASIS_POINTS
+        ).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
     )

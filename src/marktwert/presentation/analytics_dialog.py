@@ -129,7 +129,9 @@ class MarketAnalysisDialog(QDialog):
         ):
             widget.valueChanged.connect(self._calculate_recommendation)
             row.addWidget(widget)
-        self._recommendation = QLabel("Analyze a product to calculate a purchase ceiling.")
+        self._recommendation = QLabel(
+            "Analyze a product to calculate a purchase ceiling."
+        )
         self._recommendation.setObjectName("purchaseRecommendation")
         form.addRow(
             "Profit % / fee % / fixed fee / shipping / other",
@@ -233,9 +235,7 @@ class MarketAnalysisDialog(QDialog):
         assumptions = RecommendationAssumptions(
             expected_sale_price=analysis.statistics.median,
             desired_profit_basis_points=round(self._target_profit.value() * 100),
-            marketplace_fee_basis_points=round(
-                self._marketplace_fee.value() * 100
-            ),
+            marketplace_fee_basis_points=round(self._marketplace_fee.value() * 100),
             fixed_marketplace_fee=Money.from_major_units(
                 str(self._fixed_fee.value()),
                 currency,

@@ -1,6 +1,6 @@
 """Tests for exact purchase-price recommendations."""
 
-import pytest
+from decimal import Decimal
 
 from marktwert.domain.money import Money
 from marktwert.domain.recommendation import (
@@ -25,7 +25,7 @@ def test_policy_calculates_maximum_purchase_and_roi() -> None:
     assert result.expected_fees == Money.from_major_units("130.35")
     assert result.expected_profit == Money.from_major_units("250")
     assert result.roi_percent is not None
-    assert result.roi_percent == pytest.approx(42.40)
+    assert result.roi_percent == Decimal("42.40")
     assert result.feasible is True
 
 
