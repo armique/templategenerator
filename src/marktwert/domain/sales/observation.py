@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 from marktwert.domain.money import Money
 from marktwert.domain.sales.collection_profile import ItemCondition, ListingFormat
 
+MAXIMUM_CONFIDENCE_BASIS_POINTS = 10_000
+
 
 @dataclass(frozen=True, slots=True)
 class SellerSnapshot:
@@ -61,7 +63,9 @@ class ProductSnapshot:
             message = "hardware numeric attributes must be positive"
             raise ValueError(message)
         if self.normalization_confidence is not None and not (
-            0 <= self.normalization_confidence <= 10_000
+            0
+            <= self.normalization_confidence
+            <= MAXIMUM_CONFIDENCE_BASIS_POINTS
         ):
             message = "normalization confidence must be between 0 and 10000"
             raise ValueError(message)

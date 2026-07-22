@@ -161,19 +161,43 @@ def _detect_brand(value: str) -> str | None:
 
 
 def _detect_model(value: str) -> tuple[str | None, HardwareCategory]:
+    detected = _detect_gpu_model(value) or _detect_cpu_model(value)
+    if detected is not None:
+        return detected
+    chipset = _extract_chipset(value)
+    model: str | None = None
+    category = HardwareCategory.UNKNOWN
+    if chipset is not None:
+        model, category = chipset, HardwareCategory.MOTHERBOARD
+    elif re.search(r"\bddr\s*[345]\b", value):
+        model, category = _extract_ddr(value), HardwareCategory.RAM
+    elif re.search(r"\b(?:ssd|nvme|hdd)\b", value):
+        model, category = _extract_storage_model(value), HardwareCategory.STORAGE
+    elif re.search(r"\b\d{3,4}\s*w\b", value):
+        model, category = _extract_power_model(value), HardwareCategory.POWER_SUPPLY
+    return model, category
+
+
+def _detect_gpu_model(value: str) -> tuple[str, HardwareCategory] | None:
     nvidia = re.search(
         r"\b(?:geforce\s+)?(rtx|gtx)\s*(\d{3,4})(?:\s*(ti|super))?\b",
         value,
     )
     if nvidia:
         suffix = f" {nvidia.group(3).title()}" if nvidia.group(3) else ""
-        return f"{nvidia.group(1).upper()} {nvidia.group(2)}{suffix}", HardwareCategory.GPU
+        return (
+            f"{nvidia.group(1).upper()} {nvidia.group(2)}{suffix}",
+            HardwareCategory.GPU,
+        )
 
     radeon = re.search(r"\b(?:radeon\s+)?rx\s*(\d{3,4})(?:\s*(xt|xtx))?\b", value)
     if radeon:
         suffix = f" {radeon.group(2).upper()}" if radeon.group(2) else ""
         return f"RX {radeon.group(1)}{suffix}", HardwareCategory.GPU
+    return None
 
+
+def _detect_cpu_model(value: str) -> tuple[str, HardwareCategory] | None:
     ryzen = re.search(r"\bryzen\s*(?:(3|5|7|9)\s*)?(\d{4}[a-z0-9]{0,3})\b", value)
     if ryzen:
         tier = f" {ryzen.group(1)}" if ryzen.group(1) else ""
@@ -185,17 +209,7 @@ def _detect_model(value: str) -> tuple[str | None, HardwareCategory]:
             f"i{intel.group(1)}-{intel.group(2)}{intel.group(3).upper()}",
             HardwareCategory.CPU,
         )
-
-    chipset = _extract_chipset(value)
-    if chipset is not None:
-        return chipset, HardwareCategory.MOTHERBOARD
-    if re.search(r"\bddr\s*[345]\b", value):
-        return _extract_ddr(value), HardwareCategory.RAM
-    if re.search(r"\b(?:ssd|nvme|hdd)\b", value):
-        return _extract_storage_model(value), HardwareCategory.STORAGE
-    if re.search(r"\b\d{3,4}\s*w\b", value):
-        return _extract_power_model(value), HardwareCategory.POWER_SUPPLY
-    return None, HardwareCategory.UNKNOWN
+    return None
 
 
 def _extract_chipset(value: str) -> str | None:
