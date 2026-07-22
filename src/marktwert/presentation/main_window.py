@@ -20,6 +20,8 @@ from PySide6.QtWidgets import (
 
 from marktwert import APPLICATION
 from marktwert.application.search import RecentSearch
+from marktwert.presentation.analytics_dialog import MarketAnalysisDialog
+from marktwert.presentation.analytics_view_model import AnalyticsViewModel
 from marktwert.presentation.product_view_model import ProductWorkspaceViewModel
 from marktwert.presentation.product_workspace import ProductWorkspaceDialog
 from marktwert.presentation.search_view_model import SaleSearchViewModel
@@ -32,11 +34,13 @@ class MainWindow(QMainWindow):
         self,
         view_model: SaleSearchViewModel | None = None,
         product_view_model: ProductWorkspaceViewModel | None = None,
+        analytics_view_model: AnalyticsViewModel | None = None,
     ) -> None:
         """Initialize the main window and optional functional workspace."""
         super().__init__()
         self._view_model = view_model
         self._product_view_model = product_view_model
+        self._analytics_view_model = analytics_view_model
         self.setWindowTitle(APPLICATION.name)
         self.setMinimumSize(960, 640)
         self.resize(1280, 800)
@@ -101,6 +105,10 @@ class MainWindow(QMainWindow):
         title_row = QHBoxLayout()
         title_row.addWidget(title)
         title_row.addStretch()
+        self._analytics_button = QPushButton("Market analysis")
+        self._analytics_button.setObjectName("marketAnalysisButton")
+        self._analytics_button.setEnabled(self._analytics_view_model is not None)
+        title_row.addWidget(self._analytics_button)
         self._manage_products_button = QPushButton("Products & imports")
         self._manage_products_button.setObjectName("manageProductsButton")
         self._manage_products_button.setEnabled(self._product_view_model is not None)
@@ -198,6 +206,7 @@ class MainWindow(QMainWindow):
 
     def _connect_view_model(self) -> None:
         self._manage_products_button.clicked.connect(self._open_product_workspace)
+        self._analytics_button.clicked.connect(self._open_market_analysis)
         if self._view_model is None:
             return
         self._search_button.clicked.connect(self._start_search)
@@ -214,6 +223,12 @@ class MainWindow(QMainWindow):
         if self._product_view_model is None:
             return
         ProductWorkspaceDialog(self._product_view_model, self).exec()
+
+    @Slot()
+    def _open_market_analysis(self) -> None:
+        if self._analytics_view_model is None:
+            return
+        MarketAnalysisDialog(self._analytics_view_model, self).exec()
 
     @Slot()
     def _start_search(self) -> None:

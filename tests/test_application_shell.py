@@ -43,5 +43,9 @@ def test_runtime_composes_searchable_local_database(
         QPushButton,
         "manageProductsButton",
     ).isEnabled()
+    assert runtime.window.findChild(
+        QPushButton,
+        "marketAnalysisButton",
+    ).isEnabled()
     assert (tmp_path / "runtime.db").exists()
     runtime.shutdown()

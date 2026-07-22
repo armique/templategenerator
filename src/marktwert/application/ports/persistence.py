@@ -16,6 +16,7 @@ from marktwert.domain.sales import (
 )
 
 if TYPE_CHECKING:
+    from marktwert.application.analytics.ports import MarketAnalyticsRepository
     from marktwert.application.search.ports import SaleSearchRepository
 
 ACCEPTED_CLASSIFICATION = ClassificationResult(ClassificationDecision.ACCEPT)
@@ -80,6 +81,7 @@ class UnitOfWork(AbstractContextManager["UnitOfWork"], Protocol):
     tracked_products: TrackedProductRepository
     sale_observations: SaleObservationRepository
     sale_search: SaleSearchRepository
+    market_analytics: MarketAnalyticsRepository
 
     def __enter__(self) -> Self:
         """Open the transaction scope."""
