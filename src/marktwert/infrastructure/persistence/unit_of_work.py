@@ -5,6 +5,7 @@ from types import TracebackType
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from marktwert.application.ports import UnitOfWork, UnitOfWorkFactory
 from marktwert.infrastructure.persistence.repositories import (
     SqlAlchemySaleObservationRepository,
     SqlAlchemyTrackedProductRepository,
@@ -14,7 +15,7 @@ from marktwert.infrastructure.persistence.search_repository import (
 )
 
 
-class SqlAlchemyUnitOfWork:
+class SqlAlchemyUnitOfWork(UnitOfWork):
     """Coordinate repositories within one atomic database transaction."""
 
     tracked_products: SqlAlchemyTrackedProductRepository
@@ -85,7 +86,7 @@ class SqlAlchemyUnitOfWork:
         return self._session
 
 
-class SqlAlchemyUnitOfWorkFactory:
+class SqlAlchemyUnitOfWorkFactory(UnitOfWorkFactory):
     """Create independent SQLAlchemy units of work."""
 
     def __init__(self, session_factory: sessionmaker[Session]) -> None:
