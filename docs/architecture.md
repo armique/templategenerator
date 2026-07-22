@@ -135,9 +135,11 @@ The first migrated schema separates `tracked_products`, normalized
 `sale_observations`, distinct `source_revisions`, and many-to-many
 `tracked_product_sales`. Source plus external item ID is unique. Repeated source
 hashes and product links are idempotent, while a later revision can fill missing
-normalized fields without overwriting known facts. Future migrations add FTS5,
-normalization runs, watch rules, recommendations, durable job state, and
-configurable compressed raw-payload retention when their modules are built.
+normalized fields without overwriting known facts. Trigger-maintained FTS5
+indexes title and hardware identity fields, and recent query usage remains local.
+Future migrations add normalization runs, watch rules, recommendations, durable
+job state, and configurable compressed raw-payload retention when their modules
+are built.
 
 The import application service depends only on streaming-reader and unit-of-work
 ports. CSV and XLSX adapters normalize headers, while application mapping owns
@@ -145,6 +147,13 @@ German/international money and date semantics. Preview performs the same
 validation/classification without writes. Execution commits bounded pages,
 reports progress only after commit, quarantines invalid rows, and preserves a
 partially completed import only at transaction boundaries when cancelled.
+
+Local search uses a sanitized prefix-token FTS query, SQL-side filters, and a
+descending `(sold_at, observation_id)` keyset cursor. It never loads or counts
+the full result set for pagination. Classification is resolved per tracked
+product, and global searches deduplicate observations that match multiple
+products. Qt receives lightweight projections through a single-worker view
+model; stale generations are ignored so database work never blocks painting.
 
 Backups use SQLite's online backup API, followed by `PRAGMA integrity_check`.
 Restore is staged and verified before atomically replacing the active database.

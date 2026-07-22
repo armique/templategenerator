@@ -76,6 +76,36 @@ QFrame#emptyState {
     border: 1px solid #252c36;
     border-radius: 12px;
 }
+QTableView {
+    background-color: #151a21;
+    alternate-background-color: #181e26;
+    border: 1px solid #252c36;
+    border-radius: 10px;
+    gridline-color: #252c36;
+    selection-background-color: #274b9f;
+}
+QHeaderView::section {
+    color: #9ba6b5;
+    background-color: #191f27;
+    border: 0;
+    border-bottom: 1px solid #303947;
+    padding: 10px 8px;
+    font-weight: 600;
+}
+QListWidget#recentSearches {
+    color: #aeb7c4;
+    background: transparent;
+    border: 0;
+    outline: 0;
+}
+QListWidget#recentSearches::item {
+    padding: 6px 2px;
+}
+QListWidget#recentSearches::item:selected {
+    color: #ffffff;
+    background-color: #263249;
+    border-radius: 4px;
+}
 QStatusBar {
     color: #8994a3;
     background-color: #101318;

@@ -5,6 +5,9 @@ from types import TracebackType
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from marktwert.infrastructure.persistence.search_repository import (
+    SqlAlchemySaleSearchRepository,
+)
 from marktwert.infrastructure.persistence.repositories import (
     SqlAlchemySaleObservationRepository,
     SqlAlchemyTrackedProductRepository,
@@ -16,6 +19,7 @@ class SqlAlchemyUnitOfWork:
 
     tracked_products: SqlAlchemyTrackedProductRepository
     sale_observations: SqlAlchemySaleObservationRepository
+    sale_search: SqlAlchemySaleSearchRepository
 
     def __init__(self, session_factory: sessionmaker[Session]) -> None:
         """Create an unopened unit of work."""
@@ -46,6 +50,7 @@ class SqlAlchemyUnitOfWork:
         self._committed = False
         self.tracked_products = SqlAlchemyTrackedProductRepository(self._session)
         self.sale_observations = SqlAlchemySaleObservationRepository(self._session)
+        self.sale_search = SqlAlchemySaleSearchRepository(self._session)
         return self
 
     def commit(self) -> None:

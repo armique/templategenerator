@@ -10,7 +10,9 @@ def test_migration_creates_expected_schema(sqlite_engine: Engine) -> None:
 
     assert {
         "alembic_version",
+        "recent_searches",
         "sale_observations",
+        "sale_observations_fts",
         "source_revisions",
         "tracked_product_sales",
         "tracked_products",
@@ -43,4 +45,4 @@ def test_migration_is_idempotent(sqlite_engine: Engine) -> None:
 
     with sqlite_engine.connect() as connection:
         revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
-    assert revision == "0002"
+    assert revision == "0003"

@@ -5,6 +5,7 @@ from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from typing import Protocol, Self
 
+from marktwert.application.search.ports import SaleSearchRepository
 from marktwert.domain.sales import (
     ClassificationDecision,
     ClassificationResult,
@@ -74,6 +75,7 @@ class UnitOfWork(AbstractContextManager["UnitOfWork"], Protocol):
 
     tracked_products: TrackedProductRepository
     sale_observations: SaleObservationRepository
+    sale_search: SaleSearchRepository
 
     def __enter__(self) -> Self:
         """Open the transaction scope."""

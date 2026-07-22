@@ -152,6 +152,16 @@ class TrackedProductSaleRow(Base):
     )
 
 
+class RecentSearchRow(Base):
+    """Persist normalized local query usage."""
+
+    __tablename__ = "recent_searches"
+
+    query: Mapped[str] = mapped_column(String(200), primary_key=True)
+    last_used_at: Mapped[datetime] = mapped_column(UtcDateTime(), nullable=False)
+    use_count: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
 def model_metadata() -> MetaData:
     """Return schema metadata for migrations and integrity tooling."""
     return Base.metadata

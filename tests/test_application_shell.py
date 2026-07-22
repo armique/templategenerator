@@ -1,11 +1,13 @@
 """Smoke tests for the Qt application shell."""
 
+from pathlib import Path
+
 from PySide6.QtCore import QCoreApplication
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QLineEdit
 from pytestqt.qtbot import QtBot
 
 from marktwert import APPLICATION
-from marktwert.bootstrap import create_application
+from marktwert.bootstrap import create_application, create_runtime
 from marktwert.presentation.main_window import MainWindow
 
 
@@ -27,3 +29,15 @@ def test_main_window_has_safe_foundation_state(qtbot: QtBot) -> None:
     assert window.windowTitle() == APPLICATION.name
     assert window.minimumWidth() == 960
     assert "No data source configured" in window.statusBar().currentMessage()
+
+
+def test_runtime_composes_searchable_local_database(
+    qtbot: QtBot,
+    tmp_path: Path,
+) -> None:
+    runtime = create_runtime(tmp_path / "runtime.db")
+    qtbot.addWidget(runtime.window)
+
+    assert runtime.window.findChild(QLineEdit, "searchInput").isEnabled()
+    assert (tmp_path / "runtime.db").exists()
+    runtime.shutdown()

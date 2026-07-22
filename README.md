@@ -17,6 +17,7 @@ features are added as separately tested modules.
 - Exact money, tracked-product criteria, and explainable title classification
 - Migrated SQLite storage for tracked products and deduplicated sale observations
 - Previewable, transactional CSV/XLSX completed-sales import pipeline
+- Responsive FTS5 local search with keyset pagination and recent queries
 - Architecture, requirements, compliance, and delivery documentation
 - Unit and Qt tests for the implemented modules
 

@@ -1,32 +1,46 @@
 """Main application window."""
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QFrame,
+    QHeaderView,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
     QPushButton,
     QSizePolicy,
+    QTableView,
     QVBoxLayout,
     QWidget,
 )
 
 from marktwert import APPLICATION
+from marktwert.application.search import RecentSearch
+from marktwert.presentation.search_view_model import SaleSearchViewModel
 
 
 class MainWindow(QMainWindow):
-    """Display the responsive application shell."""
+    """Display the responsive local-sales workspace."""
 
-    def __init__(self) -> None:
-        """Initialize the main window and its foundation state."""
+    def __init__(self, view_model: SaleSearchViewModel | None = None) -> None:
+        """Initialize the main window and optional functional workspace."""
         super().__init__()
+        self._view_model = view_model
         self.setWindowTitle(APPLICATION.name)
         self.setMinimumSize(960, 640)
         self.resize(1280, 800)
         self.setCentralWidget(self._build_content())
-        self.statusBar().showMessage("Foundation ready · No data source configured")
+        self._connect_view_model()
+        if view_model is None:
+            self.statusBar().showMessage(
+                "Foundation ready · No data source configured"
+            )
+        else:
+            self.statusBar().showMessage("Local database ready")
 
     def _build_content(self) -> QWidget:
         content = QWidget()
@@ -50,6 +64,10 @@ class MainWindow(QMainWindow):
         brand.setObjectName("brand")
         subtitle = QLabel("MARKET INTELLIGENCE")
         subtitle.setObjectName("eyebrow")
+        self._recent_list = QListWidget()
+        self._recent_list.setObjectName("recentSearches")
+        self._recent_list.setMaximumHeight(150)
+        self._recent_list.setVisible(False)
 
         layout.addWidget(brand)
         layout.addWidget(subtitle)
@@ -59,9 +77,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self._muted_label("Favorites"))
         layout.addWidget(self._muted_label("Watchlists"))
         layout.addSpacing(24)
-        layout.addWidget(self._navigation_label("ANALYSIS"))
-        layout.addWidget(self._muted_label("Market"))
-        layout.addWidget(self._muted_label("Deal finder"))
+        layout.addWidget(self._navigation_label("RECENT SEARCHES"))
+        layout.addWidget(self._recent_list)
         layout.addStretch()
         layout.addWidget(self._muted_label(f"Version {APPLICATION.version}"))
         return sidebar
@@ -72,34 +89,67 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(48, 38, 48, 32)
         layout.setSpacing(22)
 
-        eyebrow = QLabel("EBAY GERMANY · COMPUTER HARDWARE")
+        eyebrow = QLabel("LOCAL SALES · COMPUTER HARDWARE")
         eyebrow.setObjectName("eyebrow")
-        title = QLabel("Market overview")
+        title = QLabel("Completed-sales search")
         title.setObjectName("pageTitle")
+        self._result_table = self._build_result_table()
+        self._empty_state = self._build_empty_state()
+        self._load_more_button = QPushButton("Load more")
+        self._load_more_button.setVisible(False)
 
         layout.addWidget(eyebrow)
         layout.addWidget(title)
         layout.addLayout(self._build_search())
-        layout.addWidget(self._build_empty_state(), stretch=1)
+        layout.addWidget(self._empty_state, stretch=1)
+        layout.addWidget(self._result_table, stretch=1)
+        layout.addWidget(
+            self._load_more_button,
+            alignment=Qt.AlignmentFlag.AlignHCenter,
+        )
         return workspace
 
     def _build_search(self) -> QHBoxLayout:
         layout = QHBoxLayout()
         layout.setSpacing(12)
 
-        search = QLineEdit()
-        search.setPlaceholderText("Search, for example RTX 3070")
-        search.setAccessibleName("Product search")
-        search.setDisabled(True)
-        search.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self._search_input = QLineEdit()
+        self._search_input.setObjectName("searchInput")
+        self._search_input.setPlaceholderText("Search, for example RTX 3070")
+        self._search_input.setAccessibleName("Product search")
+        self._search_input.setDisabled(self._view_model is None)
+        self._search_input.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
 
-        button = QPushButton("Search")
-        button.setAccessibleName("Search completed sales")
-        button.setDisabled(True)
+        self._search_button = QPushButton("Search")
+        self._search_button.setObjectName("searchButton")
+        self._search_button.setAccessibleName("Search completed sales")
+        self._search_button.setDisabled(self._view_model is None)
 
-        layout.addWidget(search, stretch=1)
-        layout.addWidget(button)
+        layout.addWidget(self._search_input, stretch=1)
+        layout.addWidget(self._search_button)
         return layout
+
+    def _build_result_table(self) -> QTableView:
+        table = QTableView()
+        table.setObjectName("salesTable")
+        table.setVisible(False)
+        table.setAlternatingRowColors(True)
+        table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        table.verticalHeader().setVisible(False)
+        table.horizontalHeader().setStretchLastSection(False)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(
+            0,
+            QHeaderView.ResizeMode.Stretch,
+        )
+        if self._view_model is not None:
+            table.setModel(self._view_model.table_model)
+        return table
 
     def _build_empty_state(self) -> QFrame:
         frame = QFrame()
@@ -110,20 +160,90 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(40, 40, 40, 40)
         layout.setSpacing(10)
 
-        title = QLabel("Application foundation is ready")
-        title.setObjectName("emptyTitle")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        detail = QLabel(
-            "Search will become available after the sales domain,\n"
-            "persistence, and an authorized data source are configured."
+        self._empty_title = QLabel(
+            "Search imported completed sales"
+            if self._view_model is not None
+            else "Application foundation is ready"
         )
-        detail.setObjectName("muted")
-        detail.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._empty_title.setObjectName("emptyTitle")
+        self._empty_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._empty_detail = QLabel(
+            "Enter a product name to search the local database."
+            if self._view_model is not None
+            else (
+                "Search becomes available when the application\n"
+                "is composed with its local database."
+            )
+        )
+        self._empty_detail.setObjectName("muted")
+        self._empty_detail.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        layout.addWidget(title)
-        layout.addWidget(detail)
+        layout.addWidget(self._empty_title)
+        layout.addWidget(self._empty_detail)
         return frame
+
+    def _connect_view_model(self) -> None:
+        if self._view_model is None:
+            return
+        self._search_button.clicked.connect(self._start_search)
+        self._search_input.returnPressed.connect(self._start_search)
+        self._load_more_button.clicked.connect(self._view_model.load_more)
+        self._recent_list.itemActivated.connect(self._activate_recent)
+        self._view_model.loading_changed.connect(self._on_loading_changed)
+        self._view_model.status_changed.connect(self._on_status_changed)
+        self._view_model.has_more_changed.connect(
+            self._load_more_button.setVisible
+        )
+        self._view_model.recent_changed.connect(self._on_recent_changed)
+
+    @Slot()
+    def _start_search(self) -> None:
+        if self._view_model is not None:
+            self._view_model.search(self._search_input.text())
+
+    @Slot(bool)
+    def _on_loading_changed(self, loading: bool) -> None:
+        self._search_button.setDisabled(loading)
+        self._search_input.setDisabled(loading)
+        self._load_more_button.setDisabled(loading)
+
+    @Slot(str)
+    def _on_status_changed(self, message: str) -> None:
+        self.statusBar().showMessage(message)
+        has_rows = (
+            self._view_model is not None
+            and self._view_model.table_model.rowCount() > 0
+        )
+        self._result_table.setVisible(has_rows)
+        self._empty_state.setVisible(not has_rows)
+        if not has_rows and not message.startswith("Searching"):
+            self._empty_title.setText("No local sales found")
+            self._empty_detail.setText(
+                "Import sales data or adjust the search phrase and filters."
+            )
+
+    @Slot(object)
+    def _on_recent_changed(self, raw_recent: object) -> None:
+        if not isinstance(raw_recent, tuple):
+            return
+        self._recent_list.clear()
+        for recent in raw_recent:
+            if isinstance(recent, RecentSearch):
+                self._recent_list.addItem(
+                    QListWidgetItem(f"{recent.query}  ·  {recent.use_count}")
+                )
+                self._recent_list.item(self._recent_list.count() - 1).setData(
+                    Qt.ItemDataRole.UserRole,
+                    recent.query,
+                )
+        self._recent_list.setVisible(self._recent_list.count() > 0)
+
+    @Slot(QListWidgetItem)
+    def _activate_recent(self, item: QListWidgetItem) -> None:
+        query = item.data(Qt.ItemDataRole.UserRole)
+        if isinstance(query, str):
+            self._search_input.setText(query)
+            self._start_search()
 
     @staticmethod
     def _navigation_label(text: str) -> QLabel:
