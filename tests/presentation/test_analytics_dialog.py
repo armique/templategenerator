@@ -81,10 +81,12 @@ def test_dialog_loads_products_and_renders_analysis(qtbot: QtBot) -> None:
     dialog.show()
     analyze = dialog.findChild(QPushButton, "analyzeButton")
     average = dialog.findChild(QLabel, "metricAverage")
+    recommendation = dialog.findChild(QLabel, "purchaseRecommendation")
     qtbot.waitUntil(analyze.isEnabled)
 
     qtbot.mouseClick(analyze, Qt.MouseButton.LeftButton)
     qtbot.waitUntil(lambda: average.text() != "—")
 
     assert average.text() == "205.00 EUR"
+    assert "Maximum purchase:" in recommendation.text()
     view_model.shutdown()

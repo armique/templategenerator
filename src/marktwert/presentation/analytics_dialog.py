@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QDoubleSpinBox,
     QFormLayout,
     QHBoxLayout,
     QLabel,
@@ -19,6 +20,10 @@ from PySide6.QtWidgets import (
 
 from marktwert.application.analytics import AnalysisWindow, MarketAnalysis
 from marktwert.domain.money import Money
+from marktwert.domain.recommendation import (
+    PurchaseRecommendationPolicy,
+    RecommendationAssumptions,
+)
 from marktwert.domain.sales import TrackedProduct
 from marktwert.presentation.analytics_view_model import AnalyticsViewModel
 
@@ -34,6 +39,7 @@ class MarketAnalysisDialog(QDialog):
         """Build the analysis workspace and load products."""
         super().__init__(parent)
         self._view_model = view_model
+        self._latest_analysis: MarketAnalysis | None = None
         self.setWindowTitle("Market analysis")
         self.resize(1050, 720)
         self._build_ui()
@@ -95,6 +101,7 @@ class MarketAnalysisDialog(QDialog):
         root.addWidget(title)
         root.addLayout(controls)
         root.addLayout(metrics)
+        root.addLayout(self._build_recommendation_controls())
         root.addWidget(self._canvas, stretch=1)
         root.addWidget(self._status)
 
@@ -104,6 +111,32 @@ class MarketAnalysisDialog(QDialog):
         self._view_model.products_changed.connect(self._on_products)
         self._view_model.analysis_ready.connect(self._on_analysis)
         self._view_model.error_raised.connect(self._on_error)
+
+    def _build_recommendation_controls(self) -> QFormLayout:
+        form = QFormLayout()
+        row = QHBoxLayout()
+        self._target_profit = _percentage_spinbox(25)
+        self._marketplace_fee = _percentage_spinbox(13)
+        self._fixed_fee = _money_spinbox(0.35)
+        self._outbound_shipping = _money_spinbox(6.99)
+        self._other_costs = _money_spinbox(0)
+        for widget in (
+            self._target_profit,
+            self._marketplace_fee,
+            self._fixed_fee,
+            self._outbound_shipping,
+            self._other_costs,
+        ):
+            widget.valueChanged.connect(self._calculate_recommendation)
+            row.addWidget(widget)
+        self._recommendation = QLabel("Analyze a product to calculate a purchase ceiling.")
+        self._recommendation.setObjectName("purchaseRecommendation")
+        form.addRow(
+            "Profit % / fee % / fixed fee / shipping / other",
+            row,
+        )
+        form.addRow("Purchase recommendation", self._recommendation)
+        return form
 
     @Slot()
     def _request_analysis(self) -> None:
@@ -138,6 +171,7 @@ class MarketAnalysisDialog(QDialog):
     def _on_analysis(self, raw_analysis: object) -> None:
         if not isinstance(raw_analysis, MarketAnalysis):
             return
+        self._latest_analysis = raw_analysis
         statistics = raw_analysis.statistics
         if statistics is None:
             self._status.setText("No accepted sales in this time window.")
@@ -163,6 +197,7 @@ class MarketAnalysisDialog(QDialog):
         )
         self._metric_labels["volatility"].setText(f"{statistics.volatility_percent} %")
         self._draw_history(raw_analysis)
+        self._calculate_recommendation()
         self._status.setText(
             f"{statistics.first_sale_date:%d.%m.%Y} - "
             f"{statistics.last_sale_date:%d.%m.%Y}"
@@ -189,6 +224,39 @@ class MarketAnalysisDialog(QDialog):
         self._figure.clear()
         self._canvas.draw_idle()  # type: ignore[no-untyped-call]
 
+    @Slot()
+    def _calculate_recommendation(self) -> None:
+        analysis = self._latest_analysis
+        if analysis is None or analysis.statistics is None:
+            return
+        currency = analysis.statistics.median.currency
+        assumptions = RecommendationAssumptions(
+            expected_sale_price=analysis.statistics.median,
+            desired_profit_basis_points=round(self._target_profit.value() * 100),
+            marketplace_fee_basis_points=round(
+                self._marketplace_fee.value() * 100
+            ),
+            fixed_marketplace_fee=Money.from_major_units(
+                str(self._fixed_fee.value()),
+                currency,
+            ),
+            outbound_shipping=Money.from_major_units(
+                str(self._outbound_shipping.value()),
+                currency,
+            ),
+            other_costs=Money.from_major_units(
+                str(self._other_costs.value()),
+                currency,
+            ),
+        )
+        result = PurchaseRecommendationPolicy().calculate(assumptions)
+        roi = f"{result.roi_percent}%" if result.roi_percent is not None else "n/a"
+        self._recommendation.setText(
+            f"Maximum purchase: {_money(result.maximum_purchase_price)} · "
+            f"fees {_money(result.expected_fees)} · "
+            f"profit {_money(result.expected_profit)} · ROI {roi}"
+        )
+
     @Slot(str)
     def _on_error(self, message: str) -> None:
         QMessageBox.warning(self, "Market analysis", message)
@@ -197,3 +265,19 @@ class MarketAnalysisDialog(QDialog):
 def _money(value: Money) -> str:
     major = value.major_units
     return f"{major:.2f} {value.currency}"
+
+
+def _percentage_spinbox(value: float) -> QDoubleSpinBox:
+    spinbox = QDoubleSpinBox()
+    spinbox.setRange(0, 99.99)
+    spinbox.setValue(value)
+    spinbox.setSuffix(" %")
+    return spinbox
+
+
+def _money_spinbox(value: float) -> QDoubleSpinBox:
+    spinbox = QDoubleSpinBox()
+    spinbox.setRange(0, 100_000)
+    spinbox.setValue(value)
+    spinbox.setSuffix(" EUR")
+    return spinbox

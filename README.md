@@ -21,6 +21,7 @@ features are added as separately tested modules.
 - Desktop UI for tracked-product criteria, file preview, and imports
 - Versioned hardware-title normalization with persisted evidence and confidence
 - Accepted-sale statistics, trend, volatility, and seven-day price history
+- Exact purchase ceilings with fee, shipping, profit, and ROI assumptions
 - Architecture, requirements, compliance, and delivery documentation
 - Unit and Qt tests for the implemented modules
 
