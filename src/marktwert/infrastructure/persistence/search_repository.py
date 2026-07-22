@@ -67,14 +67,13 @@ class SqlAlchemySaleSearchRepository:
         classification = (
             select(
                 TrackedProductSaleRow.sale_observation_id.label("observation_id"),
-                func.min(
-                    TrackedProductSaleRow.classification_decision
-                ).label("classification"),
+                func.min(TrackedProductSaleRow.classification_decision).label(
+                    "classification"
+                ),
             )
             .where(
                 TrackedProductSaleRow.classification_decision.in_(
-                    decision.value
-                    for decision in request.filters.classifications
+                    decision.value for decision in request.filters.classifications
                 )
             )
             .group_by(TrackedProductSaleRow.sale_observation_id)
@@ -155,8 +154,7 @@ class SqlAlchemySaleSearchRepository:
         """Return most recently used local queries."""
         if not 1 <= limit <= MAXIMUM_RECENT_SEARCHES:
             message = (
-                "recent search limit must be between "
-                f"1 and {MAXIMUM_RECENT_SEARCHES}"
+                f"recent search limit must be between 1 and {MAXIMUM_RECENT_SEARCHES}"
             )
             raise ValueError(message)
         rows = self._session.scalars(
@@ -172,6 +170,7 @@ class SqlAlchemySaleSearchRepository:
             )
             for row in rows
         )
+
 
 def _build_fts_query(query: str) -> str | None:
     if not query:

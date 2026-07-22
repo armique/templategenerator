@@ -9,6 +9,7 @@ from marktwert.application.search import (
     RecentSearch,
     SaleSearchFilters,
     SaleSearchPage,
+    SearchCursor,
     SearchSales,
     SearchSalesService,
 )
@@ -88,7 +89,7 @@ class SaleSearchViewModel(QObject):
         self._generation = 0
         self._loading = False
         self._active_request: SearchSales | None = None
-        self._next_cursor = None
+        self._next_cursor: SearchCursor | None = None
         self._workers: set[_SearchWorker] = set()
 
     @property

@@ -1,7 +1,11 @@
 """Local completed-sales search use cases."""
 
 from marktwert.application.ports import UnitOfWorkFactory
-from marktwert.application.search.models import RecentSearch, SaleSearchPage, SearchSales
+from marktwert.application.search.models import (
+    RecentSearch,
+    SaleSearchPage,
+    SearchSales,
+)
 
 
 class SearchSalesService:

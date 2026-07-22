@@ -80,7 +80,9 @@ def upgrade() -> None:
         END
         """
     )
-    op.execute("INSERT INTO sale_observations_fts(sale_observations_fts) VALUES('rebuild')")
+    op.execute(
+        "INSERT INTO sale_observations_fts(sale_observations_fts) VALUES('rebuild')"
+    )
 
 
 def downgrade() -> None:

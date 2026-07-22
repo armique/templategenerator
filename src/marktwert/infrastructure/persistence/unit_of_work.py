@@ -5,12 +5,12 @@ from types import TracebackType
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from marktwert.infrastructure.persistence.search_repository import (
-    SqlAlchemySaleSearchRepository,
-)
 from marktwert.infrastructure.persistence.repositories import (
     SqlAlchemySaleObservationRepository,
     SqlAlchemyTrackedProductRepository,
+)
+from marktwert.infrastructure.persistence.search_repository import (
+    SqlAlchemySaleSearchRepository,
 )
 
 

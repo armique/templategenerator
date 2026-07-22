@@ -1,11 +1,12 @@
 """Persistence contracts required by application use cases."""
 
+from __future__ import annotations
+
 from collections.abc import Sequence
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from typing import Protocol, Self
+from typing import TYPE_CHECKING, Protocol, Self
 
-from marktwert.application.search.ports import SaleSearchRepository
 from marktwert.domain.sales import (
     ClassificationDecision,
     ClassificationResult,
@@ -13,6 +14,9 @@ from marktwert.domain.sales import (
     TrackedProduct,
     TrackedProductId,
 )
+
+if TYPE_CHECKING:
+    from marktwert.application.search.ports import SaleSearchRepository
 
 ACCEPTED_CLASSIFICATION = ClassificationResult(ClassificationDecision.ACCEPT)
 

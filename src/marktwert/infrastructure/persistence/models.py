@@ -97,9 +97,7 @@ class SaleObservationRow(Base):
     thumbnail_url: Mapped[str | None] = mapped_column(Text)
     location: Mapped[str | None] = mapped_column(String(200))
     seller_name: Mapped[str | None] = mapped_column(String(200))
-    seller_feedback_percentage: Mapped[Decimal | None] = mapped_column(
-        Numeric(5, 2)
-    )
+    seller_feedback_percentage: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     seller_feedback_count: Mapped[int | None] = mapped_column(Integer)
     brand: Mapped[str | None] = mapped_column(String(120))
     model: Mapped[str | None] = mapped_column(String(200))

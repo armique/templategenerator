@@ -4,8 +4,8 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFrame,
-    QHeaderView,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -36,9 +36,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._build_content())
         self._connect_view_model()
         if view_model is None:
-            self.statusBar().showMessage(
-                "Foundation ready · No data source configured"
-            )
+            self.statusBar().showMessage("Foundation ready · No data source configured")
         else:
             self.statusBar().showMessage("Local database ready")
 
@@ -142,7 +140,9 @@ class MainWindow(QMainWindow):
         table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         table.verticalHeader().setVisible(False)
         table.horizontalHeader().setStretchLastSection(False)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
         table.horizontalHeader().setSectionResizeMode(
             0,
             QHeaderView.ResizeMode.Stretch,
@@ -191,9 +191,7 @@ class MainWindow(QMainWindow):
         self._recent_list.itemActivated.connect(self._activate_recent)
         self._view_model.loading_changed.connect(self._on_loading_changed)
         self._view_model.status_changed.connect(self._on_status_changed)
-        self._view_model.has_more_changed.connect(
-            self._load_more_button.setVisible
-        )
+        self._view_model.has_more_changed.connect(self._load_more_button.setVisible)
         self._view_model.recent_changed.connect(self._on_recent_changed)
 
     @Slot()
@@ -211,8 +209,7 @@ class MainWindow(QMainWindow):
     def _on_status_changed(self, message: str) -> None:
         self.statusBar().showMessage(message)
         has_rows = (
-            self._view_model is not None
-            and self._view_model.table_model.rowCount() > 0
+            self._view_model is not None and self._view_model.table_model.rowCount() > 0
         )
         self._result_table.setVisible(has_rows)
         self._empty_state.setVisible(not has_rows)
@@ -229,13 +226,12 @@ class MainWindow(QMainWindow):
         self._recent_list.clear()
         for recent in raw_recent:
             if isinstance(recent, RecentSearch):
-                self._recent_list.addItem(
-                    QListWidgetItem(f"{recent.query}  ·  {recent.use_count}")
-                )
-                self._recent_list.item(self._recent_list.count() - 1).setData(
+                item = QListWidgetItem(f"{recent.query}  ·  {recent.use_count}")
+                item.setData(
                     Qt.ItemDataRole.UserRole,
                     recent.query,
                 )
+                self._recent_list.addItem(item)
         self._recent_list.setVisible(self._recent_list.count() > 0)
 
     @Slot(QListWidgetItem)

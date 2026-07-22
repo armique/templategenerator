@@ -97,9 +97,7 @@ class SearchSales:
             )
             raise ValueError(message)
         if not 1 <= self.page_size <= MAXIMUM_SEARCH_PAGE_SIZE:
-            message = (
-                f"page_size must be between 1 and {MAXIMUM_SEARCH_PAGE_SIZE}"
-            )
+            message = f"page_size must be between 1 and {MAXIMUM_SEARCH_PAGE_SIZE}"
             raise ValueError(message)
         object.__setattr__(self, "query", normalized_query)
 

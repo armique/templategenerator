@@ -1,11 +1,19 @@
 """Qt table model for lightweight completed-sale projections."""
 
 from decimal import Decimal
+from typing import override
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+from PySide6.QtCore import (
+    QAbstractTableModel,
+    QModelIndex,
+    QPersistentModelIndex,
+    Qt,
+)
 
 from marktwert.application.search import SaleSearchResult
 from marktwert.domain.money import Money
+
+ROOT_INDEX = QModelIndex()
 
 
 class SaleSearchTableModel(QAbstractTableModel):
@@ -26,17 +34,26 @@ class SaleSearchTableModel(QAbstractTableModel):
         super().__init__()
         self._items: list[SaleSearchResult] = []
 
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
+    @override
+    def rowCount(
+        self,
+        parent: QModelIndex | QPersistentModelIndex = ROOT_INDEX,
+    ) -> int:
         """Return the number of loaded result rows."""
         return 0 if parent.isValid() else len(self._items)
 
-    def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
+    @override
+    def columnCount(
+        self,
+        parent: QModelIndex | QPersistentModelIndex = ROOT_INDEX,
+    ) -> int:
         """Return the fixed projection column count."""
         return 0 if parent.isValid() else len(self.HEADERS)
 
+    @override
     def data(
         self,
-        index: QModelIndex,
+        index: QModelIndex | QPersistentModelIndex,
         role: int = Qt.ItemDataRole.DisplayRole,
     ) -> object | None:
         """Return display, alignment, or domain-row data."""
@@ -46,13 +63,12 @@ class SaleSearchTableModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.UserRole:
             return item
         if role == Qt.ItemDataRole.TextAlignmentRole and index.column() in {1, 2, 3}:
-            return int(
-                Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
-            )
+            return int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         if role != Qt.ItemDataRole.DisplayRole:
             return None
         return self._display_value(item, index.column())
 
+    @override
     def headerData(
         self,
         section: int,
