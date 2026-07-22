@@ -54,7 +54,9 @@ class TrackedProductEditor(QDialog):
         """Build and optionally populate the modal editor."""
         super().__init__(parent)
         self._product = product
-        self.setWindowTitle("Edit tracked product" if product else "Add tracked product")
+        self.setWindowTitle(
+            "Edit tracked product" if product else "Add tracked product"
+        )
         self.setMinimumWidth(560)
         self._build_ui()
         if product is not None:

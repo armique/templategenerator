@@ -246,9 +246,8 @@ class ProductWorkspaceDialog(QDialog):
     def _on_products_changed(self, raw_products: object) -> None:
         if not isinstance(raw_products, tuple):
             return
-        selected_id = (
-            self._selected_product().id if self._selected_product() else None
-        )
+        selected_product = self._selected_product()
+        selected_id = selected_product.id if selected_product is not None else None
         self._product_list.clear()
         selected_row = 0
         for index, product in enumerate(raw_products):
