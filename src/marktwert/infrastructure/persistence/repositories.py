@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from marktwert.application.ports import ObservationUpsertResult
 from marktwert.domain.money import Money
 from marktwert.domain.sales import (
+    ClassificationDecision,
+    ClassificationResult,
     CompletedSalesCriteria,
     ItemCondition,
     ListingFormat,
@@ -25,6 +27,8 @@ from marktwert.infrastructure.persistence.models import (
     TrackedProductRow,
     TrackedProductSaleRow,
 )
+
+ACCEPTED_CLASSIFICATION = ClassificationResult(ClassificationDecision.ACCEPT)
 
 
 class SqlAlchemyTrackedProductRepository:
@@ -90,6 +94,7 @@ class SqlAlchemySaleObservationRepository:
         observation: SaleObservation,
         *,
         matched_product_id: TrackedProductId,
+        classification: ClassificationResult = ACCEPTED_CLASSIFICATION,
     ) -> ObservationUpsertResult:
         """Insert, enrich, and associate one source observation."""
         product_id = str(matched_product_id.value)
@@ -112,16 +117,18 @@ class SqlAlchemySaleObservationRepository:
             row.last_seen_at = max(row.last_seen_at, observation.acquired_at)
 
         revision_added = self._add_source_revision(row, observation)
-        product_link_added = self._add_product_link(
+        product_link_added, classification_updated = self._upsert_product_link(
             row,
             product_id=product_id,
             matched_at=observation.acquired_at,
+            classification=classification,
         )
         return ObservationUpsertResult(
             created=created,
             enriched_fields=enriched_fields,
             source_revision_added=revision_added,
             product_link_added=product_link_added,
+            classification_updated=classification_updated,
         )
 
     def get(
@@ -185,27 +192,38 @@ class SqlAlchemySaleObservationRepository:
         )
         return True
 
-    def _add_product_link(
+    def _upsert_product_link(
         self,
         row: SaleObservationRow,
         *,
         product_id: str,
         matched_at: datetime,
-    ) -> bool:
+        classification: ClassificationResult,
+    ) -> tuple[bool, bool]:
         existing_link = self._session.get(
             TrackedProductSaleRow,
             (product_id, row.id),
         )
+        evidence = _classification_evidence_values(classification)
         if existing_link is not None:
-            return False
+            classification_updated = (
+                existing_link.classification_decision != classification.decision.value
+                or existing_link.classification_evidence != evidence
+            )
+            if classification_updated:
+                existing_link.classification_decision = classification.decision.value
+                existing_link.classification_evidence = evidence
+            return False, classification_updated
         self._session.add(
             TrackedProductSaleRow(
                 tracked_product_id=product_id,
                 sale_observation_id=row.id,
                 matched_at=matched_at,
+                classification_decision=classification.decision.value,
+                classification_evidence=evidence,
             )
         )
-        return True
+        return True, False
 
 
 def _tracked_product_values(product: TrackedProduct) -> dict[str, object]:
@@ -386,3 +404,15 @@ def _enriched_fields(
         for field_name, previous_value, merged_value in field_values
         if previous_value != merged_value
     )
+
+
+def _classification_evidence_values(
+    classification: ClassificationResult,
+) -> list[dict[str, str]]:
+    return [
+        {
+            "reason": item.reason.value,
+            "matched_term": item.matched_term,
+        }
+        for item in classification.evidence
+    ]

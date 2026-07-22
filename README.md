@@ -16,6 +16,7 @@ features are added as separately tested modules.
 - Typed application bootstrap and a dark, high-DPI-aware shell
 - Exact money, tracked-product criteria, and explainable title classification
 - Migrated SQLite storage for tracked products and deduplicated sale observations
+- Previewable, transactional CSV/XLSX completed-sales import pipeline
 - Architecture, requirements, compliance, and delivery documentation
 - Unit and Qt tests for the implemented modules
 
@@ -52,4 +53,5 @@ mypy src
 - [Product requirements](docs/product-requirements.md)
 - [Architecture](docs/architecture.md)
 - [Delivery roadmap](docs/delivery-roadmap.md)
+- [Completed-sales import format](docs/import-format.md)
 - [Architecture decisions](docs/adr/0001-clean-architecture-and-mvvm.md)

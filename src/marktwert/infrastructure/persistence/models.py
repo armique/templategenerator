@@ -142,6 +142,14 @@ class TrackedProductSaleRow(Base):
         primary_key=True,
     )
     matched_at: Mapped[datetime] = mapped_column(UtcDateTime(), nullable=False)
+    classification_decision: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+    )
+    classification_evidence: Mapped[list[dict[str, str]]] = mapped_column(
+        JSON,
+        nullable=False,
+    )
 
 
 def model_metadata() -> MetaData:

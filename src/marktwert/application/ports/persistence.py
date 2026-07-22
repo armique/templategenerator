@@ -6,10 +6,14 @@ from dataclasses import dataclass
 from typing import Protocol, Self
 
 from marktwert.domain.sales import (
+    ClassificationDecision,
+    ClassificationResult,
     SaleObservation,
     TrackedProduct,
     TrackedProductId,
 )
+
+ACCEPTED_CLASSIFICATION = ClassificationResult(ClassificationDecision.ACCEPT)
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,6 +24,7 @@ class ObservationUpsertResult:
     enriched_fields: tuple[str, ...] = ()
     source_revision_added: bool = False
     product_link_added: bool = False
+    classification_updated: bool = False
 
 
 class TrackedProductRepository(Protocol):
@@ -46,6 +51,7 @@ class SaleObservationRepository(Protocol):
         observation: SaleObservation,
         *,
         matched_product_id: TrackedProductId,
+        classification: ClassificationResult = ACCEPTED_CLASSIFICATION,
     ) -> ObservationUpsertResult:
         """Insert, enrich, and associate one source observation."""
 

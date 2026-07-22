@@ -21,6 +21,10 @@ def test_migration_creates_expected_schema(sqlite_engine: Engine) -> None:
             "column_names": ["source", "external_item_id"],
         }
     ]
+    link_columns = {
+        column["name"] for column in inspector.get_columns("tracked_product_sales")
+    }
+    assert {"classification_decision", "classification_evidence"} <= link_columns
 
 
 def test_sqlite_safety_pragmas_are_enabled(sqlite_engine: Engine) -> None:
@@ -39,4 +43,4 @@ def test_migration_is_idempotent(sqlite_engine: Engine) -> None:
 
     with sqlite_engine.connect() as connection:
         revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
-    assert revision == "0001"
+    assert revision == "0002"

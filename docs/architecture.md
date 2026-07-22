@@ -139,6 +139,13 @@ normalized fields without overwriting known facts. Future migrations add FTS5,
 normalization runs, watch rules, recommendations, durable job state, and
 configurable compressed raw-payload retention when their modules are built.
 
+The import application service depends only on streaming-reader and unit-of-work
+ports. CSV and XLSX adapters normalize headers, while application mapping owns
+German/international money and date semantics. Preview performs the same
+validation/classification without writes. Execution commits bounded pages,
+reports progress only after commit, quarantines invalid rows, and preserves a
+partially completed import only at transaction boundaries when cancelled.
+
 Backups use SQLite's online backup API, followed by `PRAGMA integrity_check`.
 Restore is staged and verified before atomically replacing the active database.
 
